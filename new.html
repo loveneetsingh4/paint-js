@@ -1,0 +1,456 @@
+<!doctype html>
+<html>
+<head>
+    <title>canvas</title>
+    <script type="text/javascript" src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
+    <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    .button-click{
+        background-color: #ccc;
+    }
+    .button-color-click{
+        border-color: aqua;
+        border-width: 2px;
+    }
+    .button-black{
+        background-color: #333;
+    }
+    .button-red{
+        background-color: #ff2a00;
+    }
+    .button-lightred{
+        background-color: #e7c3c3;
+    }
+    .button-green{
+        background-color: #4dc71f;
+    }
+    .button-lightgreen{
+        background-color: #abef98;
+    }
+    .button-orange{
+        background-color: #d58512;
+    }
+    .button-lightorange{
+        background-color: #f8efc0;
+    }
+    .button-blue{
+        background-color: #2aabd2;
+    }
+    .button-lightblue{
+        background-color: #a7dbd8;
+    }
+    .button-yellow{
+        background-color: #ffff00;
+    }
+    .button-lightyellow{
+        background-color: #f5e79e;
+    }
+    .button-brown{
+        background-color: #66512c;
+    }
+    .button-gray{
+        background-color: #cccccc;
+    }
+    #color{
+     position: absolute;
+      left:700px;
+      top: 40px
+    }
+    #btnClear{
+       background: red;
+       color: white
+    }
+    #btnStraightLine{
+      color: white;
+      background: #2aabd2
+
+    }
+    #btnRectangle{
+        color: wheat;
+        background: #d58512
+
+    }
+
+ 
+#btnDownload{
+    color: white;
+    background: #4dc71f
+
+}
+
+
+</style>
+</head>
+<body>
+    <div class="container" style="margin-top: 30px;padding: 15px">
+     
+        <div class="form-group">
+            <input type="button" class="btn btn-sm btn-default" value="Clear" id="btnClear">
+            <input type="button" class="btn btn-sm btn-default"  value="Straight Line" id="btnStraightLine">
+            <input type="button" class="btn btn-sm btn-default" value="Rectangle" id="btnRectangle">
+            <input type="button" class="btn btn-sm btn-default" value="Circle" id="btnCircle">
+            <input type="button" class="btn btn-sm btn-default" value="Triangle" id="btnTriangle" >
+            <input type="button" class="btn btn-sm btn-default" value="Download" id="btnDownload">
+              <input type="button" class="btn btn-sm btn-default" value="Eraser" id="btnEraser">
+        </div>
+       
+          
+       
+       
+        <div class="form-group" id="color">
+            <input type="button" class="btn btn-sm btn-default button-gray"  id="btnColor1" name="button-gray" color-value="#cccccc">
+            <input type="button" class="btn btn-sm btn-default button-brown"  id="btnColor2" name="button-brown" color-value="#66512c">
+            <input type="button" class="btn btn-sm btn-default button-black"  id="btnColor3" name="button-black" color-value="#333">
+            <input type="button" class="btn btn-sm btn-default button-red"  id="btnColor4" name="button-red" color-value="#ff2a00">
+            <input type="button" class="btn btn-sm btn-default button-lightred"  id="btnColor5" name="button-lightred" color-value="#e7c3c3">
+            <input type="button" class="btn btn-sm btn-default button-orange"  id="btnColor6" name="button-orange" color-value="#d58512">
+            <input type="button" class="btn btn-sm btn-default button-lightorange"  id="btnColor7" name="button-lightorange" color-value="#f8efc0">
+            <input type="button" class="btn btn-sm btn-default button-lightyellow"  id="btnColor8" name="button-lightyellow" color-value="#f5e79e">
+            <input type="button" class="btn btn-sm btn-default button-yellow"  id="btnColor9" name="button-yellow" color-value="#ffff00">
+            <input type="button" class="btn btn-sm btn-default button-lightblue"  id="btnColor10" name="button-lightblue" color-value="#a7dbd8">
+            <input type="button" class="btn btn-sm btn-default button-blue"  id="btnColor11" name="button-blue" color-value="#2aabd2">
+            <input type="button" class="btn btn-sm btn-default button-lightgreen"  id="btnColor12" name="button-lightgreen" color-value="#abef98">
+            <input type="button" class="btn btn-sm btn-default button-green"  id="btnColor13" name="button-green" color-value="#4dc71f">
+        </div>
+           <canvas style="border: solid 1px gray; margin-top: 10px; " height="500px" width="950px" id="canvas"></canvas>
+    </div>
+</body>
+</html>
+
+
+
+<script type="text/javascript">
+    var Point = {};
+    Point.makePoint = function(x, y){
+        return {
+            x: x,
+            y: y
+        };
+    }
+    var myPainter = function(canvas){
+        this.canvas = canvas[0];
+    }
+    myPainter.prototype.init = function(){
+        this.context = this.canvas.getContext('2d');
+        this.lineWidth = 2;
+        this.context.lineJons = 'round';
+        this.context.lineCep = 'round';
+        this.lineColor = '#333';
+        this.currentColor = '#333';
+        this.isMouseDown = false;
+        this.orgPoint = null;
+        this.paintedArray = new Array();
+        this.isPainted = false;
+        this.isDrawStraightLine = false;
+        this.isDrawRectangle = false;
+        this.isDrawCircle = false;
+        this.isDrawTriangle = false;
+        this.isEraser = false;
+        this.bindEvent();
+    };
+    myPainter.prototype.toImage = function(){
+        return this.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    };
+    myPainter.prototype.clearCanvas = function(){
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    };
+    myPainter.prototype.clearAllPainted = function(){
+        this.paintedArray.length = 0;
+    };
+    myPainter.prototype.setLineColor = function(color){
+        this.lineColor = color;
+    };
+    myPainter.prototype.setCurrentColor = function(color){
+        this.currentColor = color;
+    };
+    myPainter.prototype.setDrawCircle = function(isDrawCircle){
+        this.isDrawCircle = isDrawCircle;
+    };
+    myPainter.prototype.setDrawStraightLine = function(isDrawStraightLine){
+        this.isDrawStraightLine = isDrawStraightLine;
+    };
+    myPainter.prototype.setDrawRectangle = function(isDrawRecTangle){
+        this.isDrawRectangle = isDrawRecTangle;
+    };
+    myPainter.prototype.setDrawTriangle = function(isDrawTriangle){
+        this.isDrawTriangle = isDrawTriangle;
+    };
+    myPainter.prototype.setEraser = function(isEraser){
+        this.isEraser = isEraser;
+        if(this.isEraser){
+            this.setLineColor('#fff');
+        }else{
+            this.setLineColor(this.currentColor);
+        }
+    };
+    myPainter.prototype.setLineWidth = function(width){
+        this.lineWidth = width;
+    }
+    myPainter.prototype.drawTriangle = function(start, end, color, lineWidth){
+        var point1 = {
+            x: start.x,
+            y: end.y > start.y ? (start.y - Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2))) : (start.y + Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)))
+        };
+        var point2 = {
+            x: end.x,
+            y: end.y
+        };
+        var point3 = {
+            x: 2*start.x - end.x,
+            y: end.y
+        };
+        this.context.beginPath();
+        this.context.strokeStyle = color;
+        this.context.lineWidth = lineWidth;
+        this.context.moveTo(point1.x, point1.y);
+        this.context.lineTo(point2.x, point2.y);
+        this.context.lineTo(point3.x, point3.y);
+        this.context.lineTo(point1.x, point1.y);
+        this.context.stroke();
+    };
+    myPainter.prototype.drawCircle = function(start, end, color, lineWidth){
+        this.context.beginPath();
+        this.context.strokeStyle = color;
+        this.context.lineWidth = lineWidth;
+        this.context.arc(start.x, start.y, Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)), 0, 2 * Math.PI);
+        this.context.stroke();
+    };
+    myPainter.prototype.drawLine = function(start, end, color, lineWidth){
+        this.context.beginPath();
+        this.context.strokeStyle = color;
+        this.context.lineWidth = lineWidth;
+        this.context.moveTo(start.x, start.y);
+        this.context.lineTo(end.x, end.y);
+        this.context.stroke();
+    };
+    myPainter.prototype.drawRectangle = function(start, end, color, lineWidth){
+        this.context.beginPath();
+        this.context.lineWidth = lineWidth;
+        this.context.strokeStyle = color;
+        this.context.strokeRect(start.x, start.y, end.x - start.x, end.y - start.y);
+    };
+    myPainter.prototype.getCanvasOffsetPoint = function(e){
+        var x = e.x - $(this.canvas).offset().left;
+        var y = e.y - $(this.canvas).offset().top;
+        return {
+            x: x,
+            y: y
+        };
+    };
+    myPainter.prototype.onMouseDown = function(event){
+        this.isMouseDown = true;
+        this.orgPoint = this.getCanvasOffsetPoint(event);
+    };
+    myPainter.prototype.onMouseMove = function(event){
+        if((this.isPainted && this.isDrawStraightLine) ||
+                (this.isPainted && this.isDrawRectangle) ||
+                (this.isPainted && this.isDrawCircle) ||
+                (this.isPainted && this.isDrawTriangle)){
+            this.clearCanvas();
+            this.isPainted = false;
+        }
+        if(this.isMouseDown){
+            var point = this.getCanvasOffsetPoint(event);
+           
+            for(var i = 0; i < this.paintedArray.length; i++){
+                if(this.paintedArray[i].type == 'Line'){
+                    this.drawLine(this.paintedArray[i].start, this.paintedArray[i].end, this.paintedArray[i].color, this.paintedArray[i].lineWidth);
+                }else if(this.paintedArray[i].type == 'Rectangle'){
+                    this.drawRectangle(this.paintedArray[i].start, this.paintedArray[i].end, this.paintedArray[i].color, this.paintedArray[i].lineWidth);
+                }else if(this.paintedArray[i].type == 'Circle'){
+                    this.drawCircle(this.paintedArray[i].start, this.paintedArray[i].end, this.paintedArray[i].color, this.paintedArray[i].lineWidth);
+                }else if(this.paintedArray[i].type == 'Triangle'){
+                    this.drawTriangle(this.paintedArray[i].start, this.paintedArray[i].end, this.paintedArray[i].color, this.paintedArray[i].lineWidth);
+                }
+            }
+           
+            if(!this.isDrawRectangle && !this.isDrawCircle && !this.isDrawTriangle){
+                console.log(this.context.strokeStyle);
+                this.drawLine(this.orgPoint, point, this.lineColor, this.lineWidth);
+            }else if(this.isDrawRectangle){
+                this.drawRectangle(this.orgPoint, point, this.lineColor, this.lineWidth);
+            }else if(this.isDrawCircle){
+                this.drawCircle(this.orgPoint, point, this.lineColor, this.lineWidth);
+            }else if(this.isDrawTriangle){
+                this.drawTriangle(this.orgPoint, point, this.lineColor, this.lineWidth);
+            }
+            this.context.closePath();
+            this.isPainted = true;
+            if(!this.isDrawStraightLine && !this.isDrawRectangle && !this.isDrawCircle && !this.isDrawTriangle){
+                this.paintedArray.push({
+                    start: this.orgPoint,
+                    end: point,
+                    color: this.lineColor,
+                    lineWidth: this.lineWidth,
+                    type: 'Line'
+                });
+                this.orgPoint = point;
+            }
+        }
+    }
+    myPainter.prototype.onMouseUp = function(event){
+        if(this.isDrawStraightLine && this.isMouseDown){
+            this.paintedArray.push({
+                start: this.orgPoint,
+                end: this.getCanvasOffsetPoint(event),
+                color: this.lineColor,
+                lineWidth: this.lineWidth,
+                type: 'Line'
+            });
+        }
+        if(this.isDrawRectangle && this.isMouseDown){
+            this.paintedArray.push({
+                start: this.orgPoint,
+                end: this.getCanvasOffsetPoint(event),
+                color: this.lineColor,
+                lineWidth: this.lineWidth,
+                type: 'Rectangle'
+            });
+        }
+        if(this.isDrawCircle && this.isMouseDown){
+            this.paintedArray.push({
+                start: this.orgPoint,
+                end: this.getCanvasOffsetPoint(event),
+                color: this.lineColor,
+                lineWidth: this.lineWidth,
+                type: 'Circle'
+            });
+        }
+        if(this.isDrawTriangle && this.isMouseDown){
+            this.paintedArray.push({
+                start: this.orgPoint,
+                end: this.getCanvasOffsetPoint(event),
+                color: this.lineColor,
+                lineWidth: this.lineWidth,
+                type: 'Triangle'
+            });
+        }
+        this.isMouseDown = false;
+        this.isPainted = false;
+    };
+    myPainter.prototype.bindEvent = function(){
+        var self = this;
+        this.canvas.addEventListener('mousedown', function(event){
+            self.onMouseDown(event);
+        }, false);
+        this.canvas.addEventListener('mousemove', function(event){
+            self.onMouseMove(event);
+        }, false);
+        this.canvas.addEventListener('mouseup', function(event){
+            self.onMouseUp(event);
+        }, false);
+    };
+    $(function(){
+        var painter = new myPainter($('#canvas'));
+        painter.init();
+        $('#btnBorder1').attr({class: 'btn btn-sm btn-default button-click'});
+        $('#btnColor3').attr({class: 'btn btn-sm btn-default ' + $('#btnColor3').attr('name') + ' button-color-click'});
+        $('#btnClear').on('click', function(){
+            painter.clearCanvas();
+            painter.clearAllPainted(); 
+        });
+        $('#btnStraightLine').on('click', function(){
+            painter.setDrawRectangle(false);
+            $('#btnRectangle').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawCircle(false);
+            $('#btnCircle').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawTriangle(false);
+            $('#btnTriangle').attr({class: 'btn btn-sm btn-default'});
+            painter.setEraser(false);
+            $('#btnEraser').attr({class: 'btn btn-sm btn-default'});
+            if(painter.isDrawStraightLine){
+                painter.setDrawStraightLine(false);
+                $(this).removeClass('btn btn-sm btn-default button-click').addClass('btn btn-sm btn-default');
+            }else{
+                painter.setDrawStraightLine(true);
+                $(this).removeClass('btn btn-sm btn-default').addClass('btn btn-sm btn-default button-click');
+            }
+        });
+        $('#btnRectangle').on('click', function(){
+            painter.setDrawStraightLine(false);
+            $('#btnStraightLine').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawCircle(false);
+            $('#btnCircle').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawTriangle(false);
+            $('#btnTriangle').attr({class: 'btn btn-sm btn-default'});
+            painter.setEraser(false);
+            $('#btnEraser').attr({class: 'btn btn-sm btn-default'});
+            if(painter.isDrawRectangle){
+                painter.setDrawRectangle(false);
+                $(this).removeClass('btn btn-sm btn-default button-click').addClass('btn btn-sm btn-default');
+            }else{
+                painter.setDrawRectangle(true);
+                $(this).removeClass('btn btn-sm btn-default').addClass('btn btn-sm btn-default button-click');
+            }
+        });
+        $('#btnCircle').on('click', function(){
+            painter.setDrawStraightLine(false);
+            $('#btnStraightLine').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawRectangle(false);
+            $('#btnRectangle').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawTriangle(false);
+            $('#btnTriangle').attr({class: 'btn btn-sm btn-default'});
+            painter.setEraser(false);
+            $('#btnEraser').attr({class: 'btn btn-sm btn-default'});
+            if(painter.isDrawCircle){
+                painter.setDrawCircle(false);
+                $(this).removeClass('btn btn-sm btn-default button-click').addClass('btn btn-sm btn-default');
+            }else{
+                painter.setDrawCircle(true);
+                $(this).removeClass('btn btn-sm btn-default').addClass('btn btn-sm btn-default button-click');
+            }
+        });
+        $('#btnTriangle').on('click', function(){
+            painter.setDrawStraightLine(false);
+            $('#btnStraightLine').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawRectangle(false);
+            $('#btnRectangle').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawCircle(false);
+            $('#btnCircle').attr({class: 'btn btn-sm btn-default'});
+            painter.setEraser(false);
+            $('#btnEraser').attr({class: 'btn btn-sm btn-default'});
+            if(painter.isDrawTriangle){
+                painter.setDrawTriangle(false);
+                $(this).removeClass('btn btn-sm btn-default button-click').addClass('btn btn-sm btn-default');
+            }else{
+                painter.setDrawTriangle(true);
+                $(this).removeClass('btn btn-sm btn-default').addClass('btn btn-sm btn-default button-click');
+            }
+        });
+        $('#btnEraser').on('click', function(){
+            painter.setDrawStraightLine(false);
+            $('#btnStraightLine').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawRectangle(false);
+            $('#btnRectangle').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawCircle(false);
+            $('#btnCircle').attr({class: 'btn btn-sm btn-default'});
+            painter.setDrawTriangle(false);
+            $('#btnTriangle').attr({class: 'btn btn-sm btn-default'});
+            if(painter.isEraser){
+                painter.setEraser(false);
+                $(this).removeClass('btn btn-sm btn-default button-click').addClass('btn btn-sm btn-default');
+            }else{
+                painter.setEraser(true);
+                $(this).removeClass('btn btn-sm btn-default').addClass('btn btn-sm btn-default button-click');
+            }
+        });
+        $("input[id^='btnBorder']").on('click', function(){
+            $(this).parent().children().attr({class: 'btn btn-sm btn-default'});
+            $(this).attr({class: 'btn btn-sm btn-default button-click'});
+            painter.setLineWidth(parseInt($(this).val()));
+        });
+        $("input[id^='btnColor']").on('click', function(){
+            $.each($(this).parent().children(), function(index, element){
+                $(this).attr({class: 'btn btn-sm btn-default ' + $(this).attr('name')});
+            });
+            $(this).attr({class: 'btn btn-sm btn-default ' + $(this).attr('name') + ' button-color-click'});
+            if(!painter.isEraser){
+                painter.setLineColor($(this).attr('color-value'));
+            }
+            painter.setCurrentColor($(this).attr('color-value'));
+        });
+        $("#btnDownload").on('click', function(){
+            location.href = painter.toImage();
+        });
+    });
+</script>
